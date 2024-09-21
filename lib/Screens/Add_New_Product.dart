@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:http/http.dart';
 
 class Add_New_Product extends StatefulWidget {
   const Add_New_Product({super.key});
@@ -15,15 +18,18 @@ class _Add_New_ProductState extends State<Add_New_Product> {
   final TextEditingController _codeTEController = TextEditingController();
   final TextEditingController _quantityTEController = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  bool _inProgress = false;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text("Add New Prodcut"),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: _buildNewProductForm(),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: _buildNewProductForm(),
+        ),
       ),
     );
   }
@@ -39,27 +45,12 @@ class _Add_New_ProductState extends State<Add_New_Product> {
                 hintText: 'Name',
                 labelText: 'Product Name'
               ),
-            ),
-            TextFormField(
-              controller: _unitPriceTEController,
-              decoration: InputDecoration(
-                  hintText: 'Unit Price',
-                  labelText: 'Unit Price'
-              ),
-            ),
-            TextFormField(
-              controller: _totalPriceTEController,
-              decoration: InputDecoration(
-                  hintText: 'Total Price',
-                  labelText: 'Total Price'
-              ),
-            ),
-            TextFormField(
-              controller: _imageTEController,
-              decoration: InputDecoration(
-                  hintText: 'Image',
-                  labelText: 'Image'
-              ),
+              validator: (String? value){
+                if(value == null || value.isEmpty){
+                  return "Enter a valid value";
+                }
+                return null;
+              },
             ),
             TextFormField(
               controller: _codeTEController,
@@ -67,6 +58,12 @@ class _Add_New_ProductState extends State<Add_New_Product> {
                   hintText: 'Product Code',
                   labelText: 'Product Code'
               ),
+              validator: (String? value){
+                if(value == null || value.isEmpty){
+                  return "Enter a valid value";
+                }
+                return null;
+              },
             ),
             TextFormField(
               controller: _quantityTEController,
@@ -74,9 +71,56 @@ class _Add_New_ProductState extends State<Add_New_Product> {
                   hintText: 'Quantity',
                   labelText: 'Quantity'
               ),
+              validator: (String? value){
+                if(value == null || value.isEmpty){
+                  return "Enter a valid value";
+                }
+                return null;
+              },
+            ),
+            TextFormField(
+              controller: _unitPriceTEController,
+              decoration: InputDecoration(
+                  hintText: 'Unit Price',
+                  labelText: 'Unit Price'
+              ),
+              validator: (String? value){
+                if(value == null || value!.isEmpty){
+                  return "Enter a valid value";
+                }
+                return null;
+              },
+            ),
+            TextFormField(
+              controller: _totalPriceTEController,
+              decoration: InputDecoration(
+                  hintText: 'Total Price',
+                  labelText: 'Total Price'
+              ),
+              validator: (String? value){
+                if(value == null || value.isEmpty){
+                  return "Enter a valid value";
+                }
+                return null;
+              },
+            ),
+            TextFormField(
+              controller: _imageTEController,
+              decoration: InputDecoration(
+                  hintText: 'Image',
+                  labelText: 'Image'
+              ),
+              validator: (String? value){
+                if(value == null || value.isEmpty){
+                  return "Enter a valid value";
+                }
+                return null;
+              },
             ),
             const SizedBox(height: 16,),
-            ElevatedButton(
+            _inProgress?Center(
+              child: CircularProgressIndicator(),
+            ): ElevatedButton(
               style: ElevatedButton.styleFrom(
                 fixedSize: const Size.fromWidth(double.maxFinite)
               ),
@@ -87,15 +131,54 @@ class _Add_New_ProductState extends State<Add_New_Product> {
       );
   }
   void _onTapAddButton(){
+    if(_formKey.currentState!.validate()){
+      addNewProduct();
+    }
+  }
+  Future<void> addNewProduct()async{
+    _inProgress = true;
+    setState(() {});
+    Map<String, dynamic> requestBody = {
+      "Img": _imageTEController.text,
+      "ProductCode":_codeTEController.text,
+      "ProductName":_productNameTEController.text,
+      "Qty":_quantityTEController.text,
+      "TotalPrice":_totalPriceTEController.text,
+      "UnitPrice":_unitPriceTEController.text,
+    };
+    Uri uri = Uri.parse("http://164.68.107.70:6060/api/v1/CreateProduct");
+    Response response = await post(uri,
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body:jsonEncode(requestBody)
+    );
+    print(response.statusCode);
+    print(response.body);
+    if(response.statusCode == 200){
+      clearTextField();
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text("Successfully Added!")));
+    }
+    _inProgress = false;
+    setState(() {});
+  }
+  void clearTextField(){
+    _productNameTEController.clear();
+    _codeTEController.clear();
+    _quantityTEController.clear();
+    _unitPriceTEController.clear();
+    _totalPriceTEController.clear();
+    _imageTEController.clear();
   }
   @override
   void dispose() {
     _productNameTEController.dispose();
+    _codeTEController.dispose();
+    _quantityTEController.dispose();
     _unitPriceTEController.dispose();
     _totalPriceTEController.dispose();
     _imageTEController.dispose();
-    _codeTEController.dispose();
-    _quantityTEController.dispose();
     super.dispose();
   }
 }

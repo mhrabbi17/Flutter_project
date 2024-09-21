@@ -15,6 +15,7 @@ class ProductListScreen extends StatefulWidget {
 
 class _ProductListScreenState extends State<ProductListScreen> {
   List<Product> productList =[];
+  bool _inProgress = false;
   @override
   void initState() {
     super.initState();
@@ -25,8 +26,15 @@ class _ProductListScreenState extends State<ProductListScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Product List'),
+        actions: [
+          IconButton(
+              onPressed: () {getProductList();},
+              icon: const Icon(Icons.refresh))
+        ],
       ),
-      body: Padding(
+      body: _inProgress? const Center(
+        child: CircularProgressIndicator(),
+      ): Padding(
         padding: const EdgeInsets.all(16.0),
         child: ListView.separated(
             itemCount: productList.length,
@@ -51,26 +59,31 @@ class _ProductListScreenState extends State<ProductListScreen> {
     );
   }
   Future<void> getProductList() async{
+
+    _inProgress = true;
+    print('Requesting');
     Uri uri = Uri.parse("http://164.68.107.70:6060/api/v1/ReadProduct");
     Response response = await get(uri);
     print(response);
     print(response.statusCode);
     print(response.body);
     if(response.statusCode == 200){
+      productList.clear();
       Map<String,dynamic> jsonResponse = jsonDecode(response.body);
       for (var item in jsonResponse['data']){
         Product product = Product(
           id: item['_id'] ?? '', // Use default if null
-          productName: item['ProductName'] ?? 'Unknown', // Default value
+          productName: item['ProductName'] ?? '', // Default value
           productCode: item['ProductCode'] ?? '',
           productImage: item['Img'] ?? '',
-          unitPrice: item['UnitPrice'] ?? '0',
-          quantity: item['Qty'] ?? '0',
-          totalPrice: item['TotalPrice'] ?? '0',
+          unitPrice: item['UnitPrice'] ?? '',
+          quantity: item['Qty'] ?? '',
+          totalPrice: item['TotalPrice'] ?? '',
           createdAt: item['CreatedDate'] ?? '',);
         productList.add(product);
       }
     }
+    _inProgress = false;
     setState(() {});
   }
 }
