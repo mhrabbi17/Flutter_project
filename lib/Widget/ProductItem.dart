@@ -1,21 +1,23 @@
+import 'package:assignment_mod14_crud_app/Product/product.dart';
 import 'package:flutter/material.dart';
 
 class ProductItem extends StatelessWidget {
   const ProductItem({
-    super.key,
+    super.key, required this.product,
   });
 
+  final Product product;
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      title: Text('Product Name'),
+      title: Text(product.productName),
       subtitle: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Product Code: CODE'),
-          Text('Price: \$120'),
-          Text('Quantity: 2'),
-          Text('Total Price: \$240'),
+          Text('Product Code: ${product.productCode}'),
+          Text('Price: \$${product.unitPrice}'),
+          Text('Quantity: ${product.quantity}'),
+          Text('Total Price: \$${product.totalPrice}'),
           Divider(),
           ButtonBar(
             children: [
