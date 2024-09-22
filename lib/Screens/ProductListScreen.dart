@@ -41,6 +41,9 @@ class _ProductListScreenState extends State<ProductListScreen> {
             itemBuilder: (context, index) {
               return ProductItem(
                 product: productList[index],
+                onDelete:(){
+                  getProductList();
+                },
               );
             },
             separatorBuilder: (context, index) {
